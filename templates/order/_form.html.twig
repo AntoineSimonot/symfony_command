@@ -1,0 +1,15 @@
+{{ form_start(form) }}
+
+<ul class="products" data-index="{{ form.products|length > 0 ? form.products|last.vars.name + 1 : 0 }}" data-prototype="{{ form_widget(form.products.vars.prototype)|e('html_attr') }}">
+
+</ul>
+<button type="button" class="add_product_link" data-collection-holder-class="products">Add a product</button>
+
+<ul class="payments" data-index="{{ form.payments|length > 0 ? form.payments|last.vars.name + 1 : 0 }}" data-prototype="{{ form_widget(form.payments.vars.prototype)|e('html_attr') }}">
+
+</ul>
+<button type="button" class="add_payment_link" data-collection-holder-class="payments">Add a payment</button>
+
+<button class="btn">{{ button_label|default('Save') }}</button>
+
+{{ form_end(form) }}

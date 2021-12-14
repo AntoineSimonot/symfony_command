@@ -17,7 +17,7 @@ class AddUserCommand extends \Symfony\Component\Console\Command\Command
 
     private $entityManager;
     private $userHelper;
-    
+
     public function __construct(EntityManagerInterface $entityManager, UserHelper $userHelper)
     {
         // 3. Update the value of the private entityManager variable through injection

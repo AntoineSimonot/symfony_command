@@ -1,0 +1,26 @@
+
+framework:
+    workflows:
+        order:
+            type: 'state_machine'
+            marking_store:
+                type: 'method'
+                property: 'state'
+            supports:
+                - App\Entity\Order
+            initial_marking: not_processed
+            places:
+                - not_processed
+                - processed
+                - late
+                - payed
+            transitions:
+                send_order_confirmation:
+                    from: not_processed
+                    to: processed
+                order_payed:
+                    from: processed
+                    to: payed
+                order_late:
+                    from: processed
+                    to: late
