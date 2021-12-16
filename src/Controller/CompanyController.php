@@ -4,13 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Company;
 use App\Form\CompanyType;
-use App\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+#[Security("is_granted('IS_AUTHENTICATED_REMEMBERED')")]
 #[Route('/company')]
 class CompanyController extends AbstractController
 {
@@ -21,6 +22,13 @@ class CompanyController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $uploadedFile = $form['logo']->getData();
+            $destination = $this->getParameter('kernel.project_dir').'/public/uploads';
+            $fileName = "logo.png";
+            $uploadedFile->move($destination, $fileName);
+
+            $company->setLogo($fileName);
+            $entityManager->persist($company);
             $entityManager->flush();
 
             return $this->redirectToRoute('company_edit', ['id' => $company->getId()], Response::HTTP_SEE_OTHER);

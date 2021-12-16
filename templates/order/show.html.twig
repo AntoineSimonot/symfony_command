@@ -31,6 +31,15 @@
                 <th>Maximum_date</th>
                 <td>{{ order.maximumDate ? order.maximumDate|date('Y-m-d H:i:s') : '' }}</td>
             </tr>
+            <tr>
+                <th>Products</th>
+                {%  for product in order.products %}
+                    <td>
+                        <a href="{{ path('product_show', {'id': product.id}) }}">{{ product.name }}</a>
+                    </td>
+                {% endfor %}
+            </tr>
+
         </tbody>
     </table>
 

@@ -1,9 +1,12 @@
 window.addEventListener("DOMContentLoaded", () => {
+
+    document.querySelector('.products').dataset.index = "0"
+    document.querySelector('.payments').dataset.index = "0"
+
     const addProductForm = () => {
         const collectionHolder = document.querySelector('.products');
 
-        const item = document.createElement('li');
-
+        const item = document.createElement('p');
         item.innerHTML = collectionHolder
             .dataset
             .prototype
@@ -14,13 +17,17 @@ window.addEventListener("DOMContentLoaded", () => {
 
         const button = createDeleteButton(collectionHolder.dataset.index, "delete_product_link");
 
-        collectionHolder.appendChild(item);
-        collectionHolder.appendChild(button);
+        const div = document.createElement('div');
+
+        div.appendChild(item);
+        div.appendChild(button);
+        collectionHolder.appendChild(div);
 
         document
             .querySelectorAll('.delete_product_link')
             .forEach(button => {
                 button.addEventListener('click', function(event) {
+                    console.log(event.target.id)
                     deleteForm(event, ".products")
                 });
             });
@@ -31,7 +38,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const addPaymentForm = () => {
         const collectionHolder = document.querySelector('.payments');
 
-        const item = document.createElement('li');
+        const item = document.createElement('p');
 
         item.innerHTML = collectionHolder
             .dataset
@@ -43,8 +50,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
         const button = createDeleteButton(collectionHolder.dataset.index, "delete_payment_link");
 
-        collectionHolder.appendChild(item);
-        collectionHolder.appendChild(button);
+        const div = document.createElement('div');
+
+        div.appendChild(item);
+        div.appendChild(button);
+        collectionHolder.appendChild(div);
 
         document
             .querySelectorAll('.delete_payment_link')
@@ -63,24 +73,29 @@ window.addEventListener("DOMContentLoaded", () => {
         .forEach(btn => btn.addEventListener("click", addProductForm));
 
     document
-    .querySelectorAll('.add_payment_link')
-    .forEach(btn => btn.addEventListener("click", addPaymentForm));
+        .querySelectorAll('.add_payment_link')
+        .forEach(btn => btn.addEventListener("click", addPaymentForm));
+
 
 
     function deleteForm (event, type) {
         event.preventDefault();
-        const collectionHolder = document.querySelector(type);
-        console.log(collectionHolder)
-        const index = collectionHolder.dataset.index;
-        collectionHolder.dataset.index--;
-        document.querySelector(`${type} li:nth-of-type(${index})`).remove();
-        document.querySelector(`${type} button:nth-of-type(${index})`).remove();
-    };
+        document.querySelector(type).dataset.index--;
+        event.target.parentElement.remove();
+
+    }
 
     const createDeleteButton = (event, type) => {
+        let random = (Math.random() * 10000).toString()
         const removeButton = document.createElement('button');
-        removeButton.classList.add(type);
+        removeButton.classList.add(type,"btn", "btn-danger", "mb-2");
+        removeButton.id = random
         removeButton.innerHTML = 'Delete';
         return removeButton;
     }
+
+    document.querySelectorAll('legend')
+        .forEach(elem => {
+            elem.parentNode.removeChild(elem);
+        });
 })

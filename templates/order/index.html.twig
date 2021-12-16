@@ -5,22 +5,6 @@
 {% block body %}
     <h1>Order index</h1>
 
-    <form action="{{ path('order_index') }}" method="get">
-        <div>
-            <input type="radio" id="not_processed" name="state" value="not_processed"
-                   checked>
-            <label for="not_processed">not_processed</label>
-        </div>
-
-        <div>
-            <input type="radio" id="processed" name="state" value="processed">
-            <label for="processed">processed</label>
-        </div>
-        <div>
-            <input type="submit" value="Send">
-        </div>
-    </form>
-
     <table class="table">
         <thead>
             <tr>
@@ -43,8 +27,11 @@
                 <td>{{ order.phone }}</td>
                 <td>{{ order.maximumDate ? order.maximumDate|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
-                    <a href="{{ path('order_show', {'id': order.id}) }}">show</a>
                     <a href="{{ path('order_edit', {'id': order.id}) }}">edit</a>
+                    <a href="{{ path('order_send', {'id': order.id}) }}">send</a>
+                    {% if order.state == "late" and order.state != "paid" %}
+                        <a href="{{ path('order_late_revive', {'id': order.id}) }}">revive demand</a>
+                    {% endif %}
                 </td>
             </tr>
         {% else %}

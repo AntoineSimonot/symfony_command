@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Order;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,32 +21,61 @@ class OrderRepository extends ServiceEntityRepository
         parent::__construct($registry, Order::class);
     }
 
-    // /**
-    //  * @return Order[] Returns an array of Order objects
-    //  */
-    /*
-    public function findByExampleField($value)
+
+    public function findAmountOfPayment()
     {
         return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('o.id', 'ASC')
-            ->setMaxResults(10)
+            ->select("o.id", "SUM(p.amount) as amount")
+            ->innerJoin("o.payments", "p")
+            ->groupBy("p.client_order")
             ->getQuery()
             ->getResult()
         ;
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Order
+    /**
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function findAmountOfInvoice($id)
     {
         return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
-            ->setParameter('val', $value)
+            ->select("SUM(p.amount) as amount")
+            ->innerJoin("o.payments", "p")
+            ->groupBy("p.client_order")
+            ->where("o.id = (:id)")
+            ->setParameter('id', $id)
             ->getQuery()
-            ->getOneOrNullResult()
+            ->getSingleScalarResult()
+            ;
+    }
+
+    /**
+     * @throws NonUniqueResultException|NoResultException
+     */
+    public function findLastInvoice($id)
+    {
+        return $this->createQueryBuilder('o')
+            ->select("i.number")
+            ->innerJoin("o.invoices", "i")
+            ->where("o.id = (:id)")
+            ->setParameter('id', $id)
+            ->orderBy("o.id", "DESC")
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+
+
+    public function findByState($state)
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.state = :val')
+            ->setParameter('val', $state)
+            ->getQuery()
+            ->getResult()
         ;
     }
-    */
+
 }

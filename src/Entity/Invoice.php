@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\InvoiceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -61,6 +63,18 @@ class Invoice
      * @ORM\ManyToOne(targetEntity=Order::class, inversedBy="invoices")
      */
     private $client_order;
+
+    /**
+     * @ORM\OneToMany(targetEntity=InvoiceRow::class, mappedBy="invoice", cascade={"persist"})
+     */
+    private $invoiceRows;
+
+
+    public function __construct()
+    {
+        $this->invoiceRows = new ArrayCollection();
+    }
+
 
     public function getId(): ?int
     {
@@ -174,4 +188,37 @@ class Invoice
 
         return $this;
     }
+
+    /**
+     * @return Collection|InvoiceRow[]
+     */
+    public function getInvoiceRows(): Collection
+    {
+        return $this->invoiceRows;
+    }
+
+    public function addInvoiceRow(InvoiceRow $invoiceRow): self
+    {
+        if (!$this->invoiceRows->contains($invoiceRow)) {
+            $this->invoiceRows[] = $invoiceRow;
+            $invoiceRow->setInvoice($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvoiceRow(InvoiceRow $invoiceRow): self
+    {
+        if ($this->invoiceRows->removeElement($invoiceRow)) {
+            // set the owning side to null (unless already changed)
+            if ($invoiceRow->getInvoice() === $this) {
+                $invoiceRow->setInvoice(null);
+            }
+        }
+
+        return $this;
+    }
+
+
+
 }

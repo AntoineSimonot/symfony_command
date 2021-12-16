@@ -5,17 +5,23 @@ namespace App\Helper;
 
 
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 
 class UserHelper extends AbstractController
 {
-    public function CreateUser($user, $password) {
+    public function CreateUser($email, $password, UserPasswordHasherInterface $hasher) {
         $em = $this->getDoctrine()->getManager();
-        $userEntity = new User();
-        $userEntity->setEmail($user);
-        $userEntity->setPassword($password);
+
+        $user = $userEntity = new User();
+        $hashedPassword = $hasher->hashPassword(
+            $user,
+            $password
+        );
+        $user->setPassword($hashedPassword);
+        $user->setEmail($email);
+
 
         $em->persist($userEntity);
         $em->flush();

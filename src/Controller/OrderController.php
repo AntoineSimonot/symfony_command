@@ -2,28 +2,34 @@
 
 namespace App\Controller;
 
-use App\Entity\Company;
 use App\Entity\Invoice;
+use App\Entity\InvoiceRow;
 use App\Entity\Order;
 use App\Form\OrderType;
+use App\Helper\EmailHelper;
 use App\Repository\CompanyRepository;
 use App\Repository\OrderRepository;
-use App\Repository\ProductRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
+use Knp\Snappy\Pdf;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Workflow\Registry;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 
-
+#[Security("is_granted('IS_AUTHENTICATED_REMEMBERED')")]
 #[Route('/order')]
 class OrderController extends AbstractController
 {
     /**
      * @var Registry
      */
-    private $workflows;
+    private Registry $workflows;
 
     public function __construct(Registry $workflows)
     {
@@ -40,14 +46,6 @@ class OrderController extends AbstractController
         ]);
     }
 
-    #[Route('/not_processed', name: 'not_processed', methods: ['GET'])]
-    public function not_processed(OrderRepository $orderRepository): Response
-    {
-        return $this->render('order/not_processed_order_list.html.twig', [
-            'orders' => $orders,
-        ]);
-    }
-    
     #[Route('/new', name: 'order_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager, CompanyRepository $companyRepository): Response
     {
@@ -55,9 +53,9 @@ class OrderController extends AbstractController
 
         $form = $this->createForm(OrderType::class, $order);
         $form->handleRequest($request);
-        $this->workflows->get($order, "order")->getMarking($order);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->workflows->get($order, "order")->getMarking($order);
             $entityManager->persist($order);
             $invoice = new Invoice();
 
@@ -69,18 +67,40 @@ class OrderController extends AbstractController
             $invoice->setCClientAddress($form->get('address')->getData());
             $invoice->setCClientName($form->get('client_name')->getData());
             $invoice->setNumber(rand(0,909888));
-            $invoice->setCreatedAt(new \DateTimeImmutable());
+            $invoice->setCreatedAt(created_at: new DateTimeImmutable());
             $order->addInvoice($invoice);
+
+            $total_amount = 0;
+            foreach ($form->get('products')->getData() as $product) {
+                $invoice_row = new InvoiceRow();
+                $invoice_row->setProductName($product->getName());
+                $invoice_row->setProductQuantity($product->getAmount());
+                $invoice->addInvoiceRow($invoice_row);
+                $total_amount = $total_amount + $product->getAmount();
+            }
+            $order->setTotalAmount($total_amount);
+            $order->setTotalAmount($total_amount);
 
             $entityManager->persist($invoice);
             $entityManager->flush();
 
             return $this->redirectToRoute('order_index', [], Response::HTTP_SEE_OTHER);
-        }
 
+
+        }
         return $this->renderForm('order/new.html.twig', [
-            'form' => $form,
+            'order' => $order,
+            'form' => $form
         ]);
+
+    }
+
+    #[Route('/{id}/late', name: 'order_late_revive', methods: ['GET'])]
+    public function sendLate(Order $order, EmailHelper $emailHelper, MailerInterface $mailer, $id): Response
+    {
+        $emailHelper->SendLateEmail($mailer, $order->getClientEmail(), $id);
+        return $this->redirectToRoute('order_index', [], Response::HTTP_SEE_OTHER);
+
     }
 
     #[Route('/{id}', name: 'order_show', methods: ['GET'])]
@@ -89,6 +109,48 @@ class OrderController extends AbstractController
         return $this->render('order/show.html.twig', [
             'order' => $order,
         ]);
+    }
+
+    /**
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    #[Route('/{id}/send', name: 'order_send', methods: ['GET', 'POST'])]
+    public function sendEmail($id,OrderRepository $orderRepository, Pdf $pdf, Order $order, MailerInterface $mailer, EntityManagerInterface $entityManager, EmailHelper $emailHelper): Response
+    {
+        $products = $order->getProducts();
+        $invoices = $order->getInvoices();
+        $lastInvoice = $orderRepository->findLastInvoice($id);
+        $invoice = "invoice" . $lastInvoice . ".pdf";
+
+        try {
+            $findAmountOfPayment = $orderRepository->findAmountOfInvoice($order->getId());
+        }
+        catch (\Exception $exception) {
+            $findAmountOfPayment = 0;
+        }
+
+        try {
+            $pdf->generateFromHtml(
+                $this->renderView('pdfs/invoice_pdf.html.twig', [
+                    "products" => $products,
+                    "order" => $order,
+                    "invoices" => $invoices,
+                    "findAmountOfPayment" => $findAmountOfPayment
+                ]), $invoice
+            );
+        }
+        catch (\Exception $exception) {
+        }
+
+        $invoicesDir = $this->getParameter('kernel.project_dir').'/public/'.$invoice;
+        $emailHelper->SendInvoice($mailer, $order->getClientEmail(), $order->getId(), $invoicesDir);
+        $order->setState('processed');
+        $entityManager->persist($order);
+        $entityManager->flush();
+
+
+        return $this->redirectToRoute('order_index', [], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/{id}/edit', name: 'order_edit', methods: ['GET', 'POST'])]

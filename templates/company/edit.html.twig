@@ -3,6 +3,8 @@
 {% block title %}Edit Company{% endblock %}
 
 {% block body %}
+    {% form_theme form 'bootstrap_4_layout.html.twig' %}
+
     <h1>Edit Company</h1>
 
     {{ include('company/_form.html.twig', {'button_label': 'Update'}) }}

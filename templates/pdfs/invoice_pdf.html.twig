@@ -1,0 +1,148 @@
+<style>
+
+
+    img{
+        width: 100px;
+    }
+    section{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    section > div {
+        display: flex;
+        justify-content:space-between;
+        width: 800px;
+        margin: 0 auto;
+        border: 1px solid #eee;
+        box-shadow: 0 0 10px rgb(0 0 0 / 15%);
+        padding: 30px;
+        flex-direction: column;
+    }
+
+    section > div > div{
+        padding: 10px;
+    }
+
+    section > div div:nth-of-type(1) ul{
+        text-align: right;
+    }
+
+    section > div ul{
+        padding: 0;
+        margin: 0;
+    }
+
+    section > div li{
+        list-style: none;
+        font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color: #555;
+        font-size: 16px;
+        margin:5px 0;
+    }
+
+    section > div > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    section > div > div ul:nth-of-type(2) {
+        text-align: right;
+    }
+
+    .method, .items{
+        background-color: #eeeeee;
+    }
+
+    section > div .method ul li, section > div .items ul li{
+        font-weight: bold;
+    }
+
+    section > div .total{
+        align-self: flex-end;
+    }
+</style>
+
+<section>
+    <div>
+        <div>
+            <img src="{{ absolute_url(asset('uploads/logo.png') )}}" id="imgEvent" alt="logo">
+
+            <ul>
+                <li>#{{ invoices.last.number }}
+                </li>
+                <li>Created: {{ invoices.last.createdAt ?  invoices.last.createdAt|date('Y-m-d H:i:s') : '' }}
+                </li>
+                <li>Due: {{ order.maximumDate ? order.maximumDate|date('Y-m-d H:i:s') : '' }}
+                </li>
+            </ul>
+        </div>
+        <div>
+            <ul>
+                <li>{{ invoices.last.clientName }}
+                </li>
+                <li>{{ invoices.last.clientAddress }}
+                </li>
+            </ul>
+            <ul>
+                <li>{{ invoices.last.cClientName }}
+                </li>
+                <li>{{ invoices.last.cClientAddress }}
+                </li>
+                <li>{{ invoices.last.cClientPhone }}
+                </li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <ul>
+                <li>Payment Method.</li>
+            </ul>
+            <ul>
+                <li>Check #
+                </li>
+            </ul>
+        </div>
+
+
+
+        <div class="items">
+            <ul>
+                <li>Item</li>
+            </ul>
+            <ul>
+                <li>Price</li>
+            </ul>
+        </div>
+
+        {% for product in products %}
+            <div class="item">
+                <ul>
+                    <li>{{ product.name }}</li>
+                </ul>
+                <ul>
+                    <li>{{ product.amount }}</li>
+                </ul>
+            </div>
+        {% else %}
+            <div class="item">
+                <ul>
+                    <li>No item</li>
+                </ul>
+                <ul>
+                    <li>No item</li>
+                </ul>
+            </div>
+        {% endfor %}
+
+
+        <div class="total">
+            <ul>
+                <li>Total: ${{ order.totalAmount }}</li>
+            </ul>
+        </div>
+    </div>
+</section>

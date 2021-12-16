@@ -3,6 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
         {# Run `composer require symfony/webpack-encore-bundle`
            and uncomment the following Encore helpers to start using Symfony UX #}
         {% block stylesheets %}
@@ -13,7 +15,39 @@
             {#{{ encore_entry_script_tags('app') }}#}
         {% endblock %}
     </head>
-    <body>
+    <body class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ path('order_index') }}">All orders</a>
+        <form action="{{ path('order_index') }}" method="get">
+            <div class="navbar-brand">
+                <input class="btn btn-primary" type="submit" id="processed" name="state" value="processed">
+            </div>
+
+            <div class="navbar-brand">
+                <input class="btn btn-secondary" type="submit" name="state" value="send">
+            </div>
+
+            <div class="navbar-brand">
+                <input class="btn btn-success" type="submit" name="state" value="payed">
+            </div>
+
+            <div class="navbar-brand">
+                <input class="btn btn-danger" type="submit" name="state" value="late">
+            </div>
+        </form>
+
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                {% if app.user %}
+                    <a class="nav-item nav-link" href="{{ path('app_logout') }}">Logout</a>
+                {% endif %}
+                <a class="nav-item nav-link">|</a>
+
+                <a class="nav-item nav-link" href="{{ path('company_edit', {'id': 1}) }}">My informations</a>
+
+            </div>
+        </div>
+    </nav>
         {% block body %}{% endblock %}
     </body>
 </html>

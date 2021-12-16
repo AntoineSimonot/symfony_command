@@ -42,11 +42,13 @@ class Order
 
     /**
      * @ORM\OneToMany(targetEntity=Product::class, mappedBy="client_order", cascade={"persist"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $products;
 
     /**
      * @ORM\OneToMany(targetEntity=Payment::class, mappedBy="client_order", cascade={"persist"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $payments;
 
@@ -60,6 +62,16 @@ class Order
      * @ORM\OneToMany(targetEntity=Invoice::class, mappedBy="client_order")
      */
     private $invoices;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $client_email;
+
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $total_amount;
 
     public function __construct()
     {
@@ -220,6 +232,30 @@ class Order
                 $invoice->setClientOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getClientEmail(): ?string
+    {
+        return $this->client_email;
+    }
+
+    public function setClientEmail(?string $client_email): self
+    {
+        $this->client_email = $client_email;
+
+        return $this;
+    }
+
+    public function getTotalAmount(): ?float
+    {
+        return $this->total_amount;
+    }
+
+    public function setTotalAmount(float $total_amount): self
+    {
+        $this->total_amount = $total_amount;
 
         return $this;
     }

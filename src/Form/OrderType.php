@@ -14,6 +14,7 @@ class OrderType extends AbstractType
     {
         $builder
             ->add('client_name')
+            ->add('clientEmail')
             ->add('address')
             ->add('phone')
             ->add('maximum_date')
@@ -22,13 +23,15 @@ class OrderType extends AbstractType
                 'label' => false,
                 'allow_add' => true,
                 'by_reference' => false,
+                'required' => true
             ])
             ->add('payments', CollectionType::class, [
                 'entry_type' => PaymentType::class,
                 'label' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ]);
+            ])
+            ->add('submit', 'Symfony\Component\Form\Extension\Core\Type\SubmitType');
     }
 
     public function configureOptions(OptionsResolver $resolver): void
